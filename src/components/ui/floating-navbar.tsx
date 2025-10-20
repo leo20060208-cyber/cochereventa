@@ -8,7 +8,7 @@ import {
 } from "framer-motion";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { Menu, X, Shield, Zap, Sparkles } from "lucide-react";
+import { Menu, X, Shield, type LucideIcon } from "lucide-react";
 
 export const FloatingNav = ({
   navItems,
@@ -17,7 +17,7 @@ export const FloatingNav = ({
   navItems: {
     name: string;
     link: string;
-    icon?: JSX.Element;
+    icon?: LucideIcon;
   }[];
   className?: string;
 }) => {
@@ -36,7 +36,7 @@ export const FloatingNav = ({
   });
 
   return (
-    <AnimatePresence mode="wait">
+    <>
       <motion.div
         initial={{
           opacity: 1,
@@ -64,20 +64,21 @@ export const FloatingNav = ({
 
         {/* Desktop Navigation */}
         <div className="hidden sm:flex items-center space-x-1">
-          {navItems.map((navItem: any, idx: number) => (
-            <Link
-              key={`desktop-link-${idx}`}
-              href={navItem.link}
-              className={cn(
-                "relative text-white/70 hover:text-white items-center flex space-x-1 text-xs transition-all duration-200 px-1.5 py-0.5 rounded-md hover:bg-white/10"
-              )}
-            >
-              {navItem.icon && (
-                <span className="text-white/70">{navItem.icon}</span>
-              )}
-              <span className="text-xs">{navItem.name}</span>
-            </Link>
-          ))}
+          {navItems.map((navItem, idx: number) => {
+            const Icon = navItem.icon;
+            return (
+              <Link
+                key={`desktop-link-${idx}`}
+                href={navItem.link}
+                className={cn(
+                  "relative text-white/70 hover:text-white items-center flex space-x-1 text-xs transition-all duration-200 px-1.5 py-0.5 rounded-md hover:bg-white/10"
+                )}
+              >
+                {Icon && <Icon className="h-3 w-3 sm:h-4 sm:w-4 text-white/70" />}
+                <span className="text-xs">{navItem.name}</span>
+              </Link>
+            );
+          })}
         </div>
 
         {/* Mobile Menu Button */}
@@ -110,17 +111,20 @@ export const FloatingNav = ({
             className="fixed top-16 right-3 sm:hidden z-[5000] bg-black/50 backdrop-blur-lg border border-white/20 rounded-2xl p-4 min-w-[240px] shadow-xl"
           >
             <div className="flex flex-col space-y-2">
-              {navItems.map((navItem: any, idx: number) => (
-                <Link
-                  key={`mobile-link-${idx}`}
-                  href={navItem.link}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center space-x-3 text-white/70 hover:text-white transition-colors duration-200 px-2 py-2 rounded-lg hover:bg-white/10"
-                >
-                  <span className="text-white/70">{navItem.icon}</span>
-                  <span className="text-sm">{navItem.name}</span>
-                </Link>
-              ))}
+              {navItems.map((navItem, idx: number) => {
+                const Icon = navItem.icon;
+                return (
+                  <Link
+                    key={`mobile-link-${idx}`}
+                    href={navItem.link}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center space-x-3 text-white/70 hover:text-white transition-colors duration-200 px-2 py-2 rounded-lg hover:bg-white/10"
+                  >
+                    {Icon && <Icon className="h-4 w-4 text-white/70" />}
+                    <span className="text-sm">{navItem.name}</span>
+                  </Link>
+                );
+              })}
             </div>
             
             {/* Mobile Contact Info */}
@@ -142,6 +146,6 @@ export const FloatingNav = ({
           </motion.div>
         )}
       </AnimatePresence>
-    </AnimatePresence>
+    </>
   );
 };
