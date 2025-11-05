@@ -1,26 +1,15 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { MapPin, Phone, Mail, Globe, Facebook, Instagram, Twitter, Youtube, Linkedin, Heart } from "lucide-react";
-import Link from "next/link";
-import { getSiteSettings, type SiteSettings } from "@/lib/data";
-import { useState, useEffect } from "react";
+import { Phone, Mail, Facebook, Instagram, Twitter, Youtube, Linkedin } from "lucide-react";
+import { type SiteSettings } from "@/lib/data";
 
-export function Footer() {
-  const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null);
+interface FooterProps {
+  settings: SiteSettings | null
+}
 
-  useEffect(() => {
-    const loadSettings = () => {
-      setSiteSettings(getSiteSettings());
-    };
-    
-    loadSettings();
-    
-    // Refresh every 2 seconds to catch updates from moderation
-    const interval = setInterval(loadSettings, 2000);
-    
-    return () => clearInterval(interval);
-  }, []);
+export function Footer({ settings }: FooterProps) {
+  const siteSettings = settings;
   const fadeInUp = {
     hidden: { opacity: 0, y: 20 },
     visible: {
@@ -47,21 +36,6 @@ export function Footer() {
     { name: "Twitter", icon: Twitter, url: siteSettings?.twitterUrl || "https://twitter.com", color: "hover:text-blue-300" },
     { name: "YouTube", icon: Youtube, url: siteSettings?.youtubeUrl || "https://youtube.com", color: "hover:text-red-400" },
     { name: "LinkedIn", icon: Linkedin, url: siteSettings?.linkedinUrl || "https://linkedin.com", color: "hover:text-blue-500" },
-  ];
-
-  const quickLinks = [
-    { name: "Catálogo", href: "/coches" },
-    { name: "Por qué Importar", href: "#what-is-import" },
-    { name: "Quiénes Somos", href: "#who-we-are" },
-    { name: "Servicios", href: "#what-we-do" },
-    { name: "Contacto", href: "/contacto" },
-  ];
-
-  const legalLinks = [
-    { name: "Política de Privacidad", href: "/privacy" },
-    { name: "Términos de Servicio", href: "/terms" },
-    { name: "Política de Cookies", href: "/cookies" },
-    { name: "Aviso Legal", href: "/legal" },
   ];
 
   return (

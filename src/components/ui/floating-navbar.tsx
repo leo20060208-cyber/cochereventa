@@ -56,10 +56,17 @@ export const FloatingNav = ({
       >
         {/* Logo */}
         <Link href="/" className="flex items-center space-x-2 mr-2">
-          <div className="w-5 h-5 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
-            <span className="text-white font-bold text-xs">CI</span>
-          </div>
-          <span className="hidden lg:inline text-white font-medium text-xs">CarImport</span>
+          <img
+            src="/LOGO.jpg"
+            alt="Logo"
+            className="w-6 h-6 rounded-full object-cover"
+            onError={(e) => {
+              // Fallback si la imagen no existe aún
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+            }}
+          />
+          <span className="hidden lg:inline text-white font-medium text-xs">rkm.group</span>
         </Link>
 
         {/* Desktop Navigation */}

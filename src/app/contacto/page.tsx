@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageSquare, Calendar, ArrowLeft, Car, Clock, User, Mail, Phone } from "lucide-react";
+import { MessageSquare, Calendar, ArrowLeft, Car, Clock } from "lucide-react";
 import Link from "next/link";
 import Component from "@/components/ui/asd";
-import { addReservation } from "@/lib/data";
+import * as api from "@/lib/api";
 
 export default function ContactPage() {
   const [contactMethod, setContactMethod] = useState<"whatsapp" | "meet" | null>(null);
@@ -28,43 +28,52 @@ export default function ContactPage() {
     });
   };
 
-  const handleWhatsApp = () => {
+  const handleWhatsApp = async () => {
     const message = `Hola, me interesa importar un coche desde Europa. Mi nombre es ${formData.name || 'cliente'}.`;
-    
-    // Save reservation to data store
+
+    // Save reservation to Supabase
     if (formData.name && formData.phone) {
-      addReservation({
-        carId: 0, // General inquiry
-        carName: "Consulta General",
-        customerName: formData.name,
-        email: formData.email || "",
-        phone: formData.phone,
-        method: "whatsapp",
-        message: `Consulta WhatsApp: ${message}`,
-        status: "pending"
-      });
+      try {
+        await api.addReservation({
+          carId: 0, // General inquiry
+          carName: "Consulta General",
+          customerName: formData.name,
+          email: formData.email || "",
+          phone: formData.phone,
+          method: "whatsapp",
+          message: `Consulta WhatsApp: ${message}`,
+          status: "pending"
+        });
+      } catch (error) {
+        console.error("Error saving reservation:", error);
+      }
     }
-    
-    window.open(`https://wa.me/34600000000?text=${encodeURIComponent(message)}`, '_blank');
+
+    window.open(`https://wa.me/34640337898?text=${encodeURIComponent(message)}`, '_blank');
   };
 
-  const handleMeetSubmit = () => {
-    // Save reservation to data store
+  const handleMeetSubmit = async () => {
+    // Save reservation to Supabase
     if (formData.name && formData.email && formData.phone && selectedDate && selectedTime) {
-      addReservation({
-        carId: 0, // General inquiry
-        carName: "Consulta General",
-        customerName: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        method: "meet",
-        date: selectedDate,
-        time: selectedTime,
-        message: `Cita agendada. Tipo de coche: ${formData.carType || 'No especificado'}. Presupuesto: ${formData.budget || 'No especificado'}. Preferencias: ${formData.preferences || 'No especificadas'}. Urgencia: ${formData.urgency || 'No especificada'}.`,
-        status: "pending"
-      });
-      
-      alert(`Cita agendada para ${selectedDate} a las ${selectedTime}. Te contactaremos pronto.`);
+      try {
+        await api.addReservation({
+          carId: 0, // General inquiry
+          carName: "Consulta General",
+          customerName: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          method: "meet",
+          date: selectedDate,
+          time: selectedTime,
+          message: `Cita agendada. Tipo de coche: ${formData.carType || 'No especificado'}. Presupuesto: ${formData.budget || 'No especificado'}. Preferencias: ${formData.preferences || 'No especificadas'}. Urgencia: ${formData.urgency || 'No especificada'}.`,
+          status: "pending"
+        });
+
+        alert(`Cita agendada para ${selectedDate} a las ${selectedTime}. Te contactaremos pronto.`);
+      } catch (error) {
+        console.error("Error saving reservation:", error);
+        alert("Hubo un error al agendar la cita. Por favor, intenta de nuevo.");
+      }
     } else {
       alert("Por favor, completa todos los campos obligatorios.");
     }

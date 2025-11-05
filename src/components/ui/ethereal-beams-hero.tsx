@@ -7,7 +7,7 @@ import * as THREE from "three"
 import { Canvas, useFrame } from "@react-three/fiber"
 import { PerspectiveCamera } from "@react-three/drei"
 import { degToRad } from "three/src/math/MathUtils.js"
-import { ArrowRight, Github, Star } from "lucide-react"
+// import { ArrowRight } from "lucide-react" // Unused for now
 
 // ============================================================================
 // BEAMS COMPONENT (3D Background)
@@ -413,10 +413,10 @@ const Beams: FC<BeamsProps> = ({
 }
 
 // ============================================================================
-// BUTTON COMPONENT
+// BUTTON COMPONENT (Currently unused but kept for potential future use)
 // ============================================================================
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+/* interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "default" | "outline" | "ghost"
   size?: "sm" | "lg"
   children: React.ReactNode
@@ -446,7 +446,7 @@ const Button = ({ variant = "default", size = "sm", className = "", children, ..
       <div className="absolute inset-0 -top-2 -bottom-2 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
     </button>
   )
-}
+} */
 
 // ============================================================================
 // MAIN HERO COMPONENT

@@ -1,11 +1,10 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Car, Shield, Globe, CheckCircle, Clock, Award, Play, Pause, Volume2, VolumeX } from "lucide-react"
+import { Car, Shield, Globe, CheckCircle, Clock, Award } from "lucide-react"
 import { ArrowRight } from "lucide-react"
-import { useState, useRef, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { getVideos } from "@/lib/data"
+import { useMemo } from "react"
+import { type Video } from "@/lib/data"
 
 const fadeIn = {
   hidden: { opacity: 0, y: 20 },
@@ -35,46 +34,52 @@ const itemFadeIn = {
   },
 }
 
-export function WhatWeDo() {
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [isMuted, setIsMuted] = useState(true)
-  const [whatWeDoVideo, setWhatWeDoVideo] = useState("https://www.youtube.com/embed/3igSQXJBm6E")
+interface WhatWeDoProps {
+  videos: Video[]
+}
 
-  useEffect(() => {
-    const loadVideo = () => {
-      const videos = getVideos();
-      const whatWeDoVideoData = videos.find(v => v.type === "what-we-do" && v.active);
-      if (whatWeDoVideoData) {
-        setWhatWeDoVideo(whatWeDoVideoData.url);
-      }
-    };
+export function WhatWeDo({ videos }: WhatWeDoProps) {
+  // Find the active what-we-do video from props
+  const whatWeDoVideo = useMemo(() => {
+    const whatWeDoVideoData = videos.find(v => v.type === "what-we-do" && v.active);
+    return whatWeDoVideoData?.url || "https://www.youtube.com/embed/3igSQXJBm6E";
+  }, [videos])
+  
+  // Ensure autoplay & mute for better UX with proper YouTube embed parameters
+  // Fix YouTube connection issues by properly handling embed URLs
+  const autoplayVideoSrc = useMemo(() => {
+    const baseUrl = whatWeDoVideo;
+    // Extract video ID if it's a full YouTube URL
+    let videoId = '';
     
-    loadVideo();
-    
-    // Refresh every 2 seconds to catch updates from moderation
-    const interval = setInterval(loadVideo, 2000);
-    
-    return () => clearInterval(interval);
-  }, [])
-
-  const togglePlay = () => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause()
-      } else {
-        videoRef.current.play()
-      }
-      setIsPlaying(!isPlaying)
+    if (baseUrl.includes('youtube.com/embed/')) {
+      // Already an embed URL, extract ID
+      const match = baseUrl.match(/youtube\.com\/embed\/([^?&#]+)/);
+      videoId = match ? match[1] : '';
+    } else if (baseUrl.includes('youtu.be/')) {
+      // Short URL format
+      videoId = baseUrl.split('youtu.be/')[1]?.split('?')[0]?.split('&')[0] || '';
+    } else if (baseUrl.includes('watch?v=')) {
+      // Full watch URL format
+      videoId = baseUrl.split('watch?v=')[1]?.split('&')[0] || '';
     }
-  }
-
-  const toggleMute = () => {
-    if (videoRef.current) {
-      videoRef.current.muted = !isMuted
-      setIsMuted(!isMuted)
+    
+    // Always rebuild the embed URL with proper parameters to avoid connection issues
+    if (videoId) {
+      return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&playsinline=1&rel=0&controls=1&showinfo=0&modestbranding=1&fs=1&iv_load_policy=3&cc_load_policy=0&enablejsapi=1`;
     }
-  }
+    
+    // Fallback: if URL is already an embed URL, clean it and add parameters
+    if (baseUrl.includes('youtube.com/embed/')) {
+      const cleanUrl = baseUrl.split('?')[0]; // Remove existing params
+      return `${cleanUrl}?autoplay=1&mute=1&playsinline=1&rel=0&controls=1&showinfo=0&modestbranding=1&fs=1&iv_load_policy=3&cc_load_policy=0&enablejsapi=1`;
+    }
+    
+    // Last resort: add parameters to existing URL
+    const hasQuery = baseUrl.includes("?");
+    const params = "autoplay=1&mute=1&playsinline=1&rel=0&controls=1&showinfo=0&modestbranding=1&fs=1&iv_load_policy=3&cc_load_policy=0&enablejsapi=1";
+    return `${baseUrl}${hasQuery ? "&" : "?"}${params}`;
+  }, [whatWeDoVideo]);
 
   return (
         <section id="what-we-do" className="w-full py-3 md:py-6 lg:py-8 relative z-10">
@@ -117,13 +122,14 @@ export function WhatWeDo() {
             <div className="relative aspect-video">
               <iframe
                 className="w-full h-full"
-                src={whatWeDoVideo}
+                src={autoplayVideoSrc}
                 title="Vídeo de servicios"
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                 allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
               ></iframe>
-              
             </div>
           </motion.div>
           <motion.div

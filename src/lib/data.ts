@@ -87,7 +87,7 @@ export interface SiteSettings {
 
 
 // Utility functions for localStorage
-const saveToStorage = (key: string, data: any) => {
+const saveToStorage = <T = unknown>(key: string, data: T) => {
   if (typeof window !== 'undefined') {
     try {
       const serializedData = JSON.stringify(data);
@@ -97,7 +97,7 @@ const saveToStorage = (key: string, data: any) => {
       console.error(`❌ Error saving ${key} to localStorage:`, error);
       // Fallback: try to save data without some fields
       try {
-        const limitedData = data.slice ? data.slice(0, 10) : Object.keys(data).length > 5 ? Object.fromEntries(Object.entries(data).slice(0, 5)) : data;
+        const limitedData = (data as unknown[]).slice ? (data as unknown[]).slice(0, 10) : Object.keys(data as object).length > 5 ? Object.fromEntries(Object.entries(data as object).slice(0, 5)) : data;
         localStorage.setItem(`${key}_backup`, JSON.stringify(limitedData));
         console.log(`⚠️ Saved limited ${key} backup to localStorage`);
       } catch (backupError) {
@@ -107,7 +107,7 @@ const saveToStorage = (key: string, data: any) => {
   }
 };
 
-const loadFromStorage = (key: string, fallback: any) => {
+const loadFromStorage = <T = unknown>(key: string, fallback: T): T => {
   if (typeof window !== 'undefined') {
     try {
       const stored = localStorage.getItem(key);
@@ -481,14 +481,13 @@ let siteSettings: SiteSettings = loadFromStorage('siteSettings', {
   companyName: "CarImport",
   companyLogo: "https://via.placeholder.com/40x40/3B82F6/FFFFFF?text=CI",
   contactEmail: "info@carimport.com",
-  contactPhone: "+34 600 000 000",
+  contactPhone: "+34 640 337 898",
   contactAddress: "Carrer de la Marina 123, Barcelona",
-  whatsappNumber: "+34600000000",
+  whatsappNumber: "+34640337898",
   instagramUrl: "https://instagram.com/carimport",
   facebookUrl: "https://facebook.com/carimport",
   twitterUrl: "https://twitter.com/carimport",
   linkedinUrl: "https://linkedin.com/company/carimport",
-  instagramUrl: "https://instagram.com/carimport",
   youtubeUrl: "https://youtube.com/@carimport",
   footerCopyright: "CarImport. Todos los derechos reservados.",
   footerDescription: "Tu socio de confianza para importar coches de alta calidad desde Europa. Sin complicaciones, sin sorpresas."
@@ -678,4 +677,9 @@ export const updateSiteSettings = (settings: Partial<SiteSettings>): SiteSetting
   return updatedSettings;
 };
 
-export default { saveToStorage, loadFromStorage };
+const data = {
+  saveToStorage,
+  loadFromStorage
+};
+
+export default data;

@@ -1,14 +1,10 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import {
-  Menu,
-  X,
   ArrowRight,
-  ChevronRight,
   Mail,
   MapPin,
   Phone,
@@ -16,14 +12,7 @@ import {
   Twitter,
   Linkedin,
   Facebook,
-  Github,
   ArrowUpRight,
-  Sparkles,
-  Zap,
-  Palette,
-  Code,
-  LineChart,
-  MessageSquare,
   Car,
   Shield,
   Clock,
@@ -67,21 +56,6 @@ const itemFadeIn = {
 }
 
 export function CarImportSections() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [scrollY, setScrollY] = useState(0)
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrollY(window.scrollY)
-    }
-
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
-
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen)
-  }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -602,7 +576,7 @@ export function CarImportSections() {
                       />
                     ))}
                   </div>
-                  <blockquote className="mt-4 text-lg font-medium leading-relaxed text-black">"{testimonial.quote}"</blockquote>
+                  <blockquote className="mt-4 text-lg font-medium leading-relaxed text-black">&quot;{testimonial.quote}&quot;</blockquote>
                 </div>
                 <div className="mt-6 flex items-center">
                   <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">

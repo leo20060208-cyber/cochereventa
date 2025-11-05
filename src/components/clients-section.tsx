@@ -2,24 +2,13 @@
 
 import { motion } from "framer-motion";
 import { Star, Quote, User, MapPin, Car } from "lucide-react";
-import { useState, useEffect } from "react";
-import { getClients, type Client } from "@/lib/data";
+import { type Client } from "@/lib/data";
 
-export function ClientsSection() {
-  const [clients, setClients] = useState<Client[]>([]);
+interface ClientsSectionProps {
+  clients: Client[]
+}
 
-  useEffect(() => {
-    const loadClients = () => {
-      setClients(getClients());
-    };
-    
-    loadClients();
-    
-    // Refresh every 2 seconds to catch updates from moderation
-    const interval = setInterval(loadClients, 2000);
-    
-    return () => clearInterval(interval);
-  }, []);
+export function ClientsSection({ clients }: ClientsSectionProps) {
 
   const fadeUp = {
     hidden: { opacity: 0, y: 20 },
@@ -85,7 +74,7 @@ export function ClientsSection() {
             viewport={{ once: true }}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           >
-            {clients.map((client, index) => (
+            {clients.map((client) => (
               <motion.div
                 key={client.id}
                 variants={fadeUp}
@@ -123,7 +112,7 @@ export function ClientsSection() {
                 <div className="mb-4">
                   <Quote className="h-6 w-6 text-blue-400 mb-3 opacity-50" />
                   <p className="text-white/80 leading-relaxed text-sm md:text-base">
-                    "{client.testimonial}"
+                    &quot;{client.testimonial}&quot;
                   </p>
                 </div>
 

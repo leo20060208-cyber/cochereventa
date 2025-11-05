@@ -2,6 +2,7 @@
 
 import { memo, useEffect, useLayoutEffect, useState } from "react"
 import {
+  AnimatePresence,
   motion,
   useAnimation,
   useMotionValue,
@@ -268,11 +269,134 @@ const Carousel = memo<CarouselProps>(function Carousel({
   }
 )
 
+function CarPopup({ car, onClose }: { car: Car; onClose: () => void }) {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
+
+  // Asegurar que siempre haya al menos una imagen
+  const displayImages = car.images && car.images.length > 0 ? car.images : [car.image]
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.8, opacity: 0 }}
+        className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="relative">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute top-4 right-4 z-10 bg-white/90 hover:bg-white"
+            onClick={onClose}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+          
+          <div className="grid md:grid-cols-2 gap-6 p-6">
+            {/* Imágenes */}
+            <div className="space-y-4">
+              <div className="aspect-square rounded-xl overflow-hidden">
+                <img
+                  src={displayImages[currentImageIndex]}
+                  alt={`${car.brand} ${car.model}`}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="flex space-x-2">
+                {displayImages.map((image, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentImageIndex(index)}
+                    className={`w-16 h-16 rounded-lg overflow-hidden ${
+                      currentImageIndex === index ? 'ring-2 ring-blue-500' : ''
+                    }`}
+                  >
+                    <img
+                      src={image}
+                      alt={`${car.brand} ${car.model} ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Información */}
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-3xl font-bold text-gray-900 mb-2">{`${car.brand} ${car.model}`}</h2>
+                <p className="text-4xl font-bold text-blue-600 mb-4">{car.price.toLocaleString()}€</p>
+                <p className="text-gray-600 leading-relaxed">{car.description}</p>
+              </div>
+
+              {/* Características */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-center space-x-2">
+                  <Calendar className="h-5 w-5 text-gray-500" />
+                  <span className="text-sm text-gray-600">{car.year}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Gauge className="h-5 w-5 text-gray-500" />
+                  <span className="text-sm text-gray-600">{car.mileage.toLocaleString()} km</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <MapPin className="h-5 w-5 text-gray-500" />
+                  <span className="text-sm text-gray-600">{car.location}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Fuel className="h-5 w-5 text-gray-500" />
+                  <span className="text-sm text-gray-600">{car.fuel}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Users className="h-5 w-5 text-gray-500" />
+                  <span className="text-sm text-gray-600">{car.transmission}</span>
+                </div>
+              </div>
+
+              {/* Equipamiento */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Equipamiento</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {car.features.map((feature, index) => (
+                    <div key={index} className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <span className="text-sm text-gray-600">{feature}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Botones */}
+              <div className="flex space-x-4 pt-4">
+                <Button className="flex-1 bg-blue-600 hover:bg-blue-700">
+                  Solicitar Información
+                </Button>
+                <Button variant="outline" className="flex-1">
+                  Agendar Visita
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  )
+}
+
 interface ThreeDCarCarouselProps {
   cars: Car[]
 }
 
 function ThreeDCarCarousel({ cars: propsCars }: ThreeDCarCarouselProps) {
+  const [activeCar, setActiveCar] = useState<Car | null>(null)
   const [isCarouselActive, setIsCarouselActive] = useState(true)
   const controls = useAnimation()
 
@@ -280,12 +404,23 @@ function ThreeDCarCarousel({ cars: propsCars }: ThreeDCarCarouselProps) {
   const cars = propsCars && propsCars.length > 0 ? propsCars : fallbackCars
 
   const handleClick = (car: Car) => {
-    // Redirigir al catálogo de coches
-    window.location.href = '/coches'
+    setActiveCar(car)
+    setIsCarouselActive(false)
+    controls.stop()
+  }
+
+  const handleClose = () => {
+    setActiveCar(null)
+    setIsCarouselActive(true)
   }
 
   return (
     <motion.div layout className="relative">
+      <AnimatePresence mode="sync">
+        {activeCar && (
+          <CarPopup car={activeCar} onClose={handleClose} />
+        )}
+      </AnimatePresence>
       <div className="relative h-[500px] w-full overflow-hidden">
         <Carousel
           handleClick={handleClick}

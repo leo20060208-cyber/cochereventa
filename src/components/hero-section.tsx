@@ -2,28 +2,19 @@
 
 import { ContainerScroll } from "@/components/ui/container-scroll-animation";
 import { motion } from "framer-motion";
-import { getVideos } from "@/lib/data";
-import { useState, useEffect } from "react";
+import { type Video } from "@/lib/data";
+import { useMemo } from "react";
 
-export function HeroSection() {
-  const [heroVideo, setHeroVideo] = useState("https://www.youtube.com/embed/3igSQXJBm6E");
+interface HeroSectionProps {
+  videos: Video[]
+}
 
-  useEffect(() => {
-    const loadVideo = () => {
-      const videos = getVideos();
-      const heroVideoData = videos.find(v => v.type === "hero" && v.active);
-      if (heroVideoData) {
-        setHeroVideo(heroVideoData.url);
-      }
-    };
-    
-    loadVideo();
-    
-    // Refresh every 2 seconds to catch updates from moderation
-    const interval = setInterval(loadVideo, 2000);
-    
-    return () => clearInterval(interval);
-  }, []);
+export function HeroSection({ videos }: HeroSectionProps) {
+  // Find the active hero video from props
+  const heroVideo = useMemo(() => {
+    const heroVideoData = videos.find(v => v.type === "hero" && v.active);
+    return heroVideoData?.url || "https://www.youtube.com/embed/3igSQXJBm6E";
+  }, [videos]);
 
   const fadeUpVariants = {
     hidden: { opacity: 0, y: 30 },
@@ -33,7 +24,7 @@ export function HeroSection() {
       transition: {
         duration: 1,
         delay: 0.5 + i * 0.2,
-        ease: [0.25, 0.4, 0.25, 1],
+        ease: [0.25, 0.4, 0.25, 1] as const,
       },
     }),
   };
@@ -66,7 +57,7 @@ export function HeroSection() {
                 >
                   <p className="text-xs sm:text-sm md:text-base text-white/80 italic max-w-xl mx-auto px-4 leading-relaxed">
                     <span className="text-white/60">(</span>La conversa que tiene todo el mundo, y la pregunta del millón: ¿por qué no lo hace todo el mundo si es más rentable? 
-                    Nosotros siempre decimos lo mismo: <span className="text-blue-400">"Mira, no lo sé, pero mejor menos competencia, más barato"</span><span className="text-white/60">)</span>
+                    Nosotros siempre decimos lo mismo: <span className="text-blue-400">&quot;Mira, no lo sé, pero mejor menos competencia, más barato&quot;</span><span className="text-white/60">)</span>
                   </p>
                 </motion.div>
               </motion.div>

@@ -266,7 +266,7 @@ function ShaderCanvas({
       const h = Math.max(1, Math.floor(cssH * dpr));
       if (canvas.width !== w || canvas.height !== h) {
         canvas.width = w; canvas.height = h;
-        gl.viewport(0, 0, w, h);
+        gl?.viewport(0, 0, w, h);
       }
     }
     function scheduleSize() {
@@ -322,7 +322,7 @@ ${linked.log}`); return cleanup; }
     frameRef.current = 0;
 
     function tick(now: number) {
-      if (disposed) return;
+      if (disposed || !gl) return;
       if (gl.isContextLost()) { rafRef.current = requestAnimationFrame(tick); return; }
 
       const t = (now - startRef.current) / 1000;
@@ -365,9 +365,9 @@ ${linked.log}`); return cleanup; }
       canvas.removeEventListener("webglcontextrestored", onContextRestored);
 
       if (ro) { try { ro.disconnect(); } catch {} ro = null; }
-      try { if (vbo) gl.deleteBuffer(vbo); } catch {}
-      try { if (vao) gl.deleteVertexArray(vao); } catch {}
-      try { if (program) gl.deleteProgram(program); } catch {}
+      try { if (vbo && gl) gl.deleteBuffer(vbo); } catch {}
+      try { if (vao && gl) gl.deleteVertexArray(vao); } catch {}
+      try { if (program && gl) gl.deleteProgram(program); } catch {}
     }
 
     return cleanup;

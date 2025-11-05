@@ -1,10 +1,10 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Button } from "@/components/ui/button"
 import { ArrowRight } from "lucide-react"
 import { ThreeDCarCarousel } from "@/components/ui/3d-carousel"
 import Link from "next/link"
+import type { Car } from "@/lib/data"
 
 const fadeIn = {
   hidden: { opacity: 0, y: 20 },
@@ -15,26 +15,11 @@ const fadeIn = {
   },
 }
 
-const staggerContainer = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-    },
-  },
+interface StockCarsProps {
+  cars: Car[]
 }
 
-const itemFadeIn = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5 },
-  },
-}
-
-export function StockCars() {
+export function StockCars({ cars }: StockCarsProps) {
   return (
         <section id="stock" className="w-full py-12 md:py-24 lg:py-32 relative z-10">
       <div className="container mx-auto px-4 md:px-6">
@@ -72,7 +57,7 @@ export function StockCars() {
             variants={fadeIn}
             className="py-12 px-6 max-w-7xl mx-auto"
           >
-            <ThreeDCarCarousel />
+            <ThreeDCarCarousel cars={cars} />
           </motion.div>
           <div className="flex justify-center pb-10 px-6">
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>

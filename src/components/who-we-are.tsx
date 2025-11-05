@@ -1,9 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import AnimatedCard from "@/components/ui/dynamic-border-animations-card";
-import { getWhoWeAreData } from "@/lib/data";
-import { useState, useEffect } from "react";
+import { type WhoWeAreData } from "@/lib/data";
 
 const fadeIn = {
   hidden: { opacity: 0, y: 20 },
@@ -14,21 +12,16 @@ const fadeIn = {
   },
 };
 
-export function WhoWeAre() {
-  const [whoWeAreData, setWhoWeAreData] = useState(getWhoWeAreData());
+interface WhoWeAreProps {
+  data: WhoWeAreData | null
+}
 
-  useEffect(() => {
-    const loadData = () => {
-      setWhoWeAreData(getWhoWeAreData());
-    };
-    
-    loadData();
-    
-    // Refresh every 2 seconds to catch updates from moderation
-    const interval = setInterval(loadData, 2000);
-    
-    return () => clearInterval(interval);
-  }, []);
+export function WhoWeAre({ data }: WhoWeAreProps) {
+  // Default data in case prop is null
+  const whoWeAreData = data || {
+    id: 1,
+    description: "Somos tres chicos jóvenes de Barcelona, de 20, 22 y 23 años, apasionados por el mundo del motor. Desde siempre nos han fascinado los coches y todo lo que los rodea, y decidimos transformar esa pasión en un proyecto real y profesional."
+  };
 
   return (
     <section id="who-we-are" className="w-full py-8 md:py-16 relative z-10">
@@ -50,29 +43,18 @@ export function WhoWeAre() {
                 </span>
               </h1>
               
-              {/* Layout: Photo left, Text right */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start mb-8">
-                {/* Photo Section - Left */}
-                <div className="flex justify-center lg:justify-start">
-                  <div className="w-64 h-48 rounded-2xl overflow-hidden shadow-lg">
-                    <img
-                      src={whoWeAreData.image}
-                      alt="Equipo de importación de coches"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                </div>
-                
-                {/* Text Section - Right */}
+              {/* Layout: Text only */}
+              <div className="max-w-4xl mx-auto mb-8">
+                {/* Text Section */}
                 <div className="space-y-4">
                   <div>
                     <p className="text-white/90 text-sm leading-relaxed font-medium mb-4">
                       {whoWeAreData.description}
                     </p>
-                    
+
                     <p className="text-white/90 text-sm leading-relaxed font-medium">
-                      Es verdad que en algunos vídeos salimos con máscara, y entendemos que eso puede generar ciertas dudas. 
-                      Pero tranquilos: cuando hablemos por WhatsApp o nos veamos en persona (ya sea en un meet o reunión), 
+                      Es verdad que en algunos vídeos salimos con máscara, y entendemos que eso puede generar ciertas dudas.
+                      Pero tranquilos: cuando hablemos por WhatsApp o nos veamos en persona (ya sea en un meet o reunión),
                       nos conoceréis tal como somos. Creemos en el trato cercano, honesto y directo.
                     </p>
                   </div>
@@ -81,7 +63,7 @@ export function WhoWeAre() {
                     <h2 className="text-2xl md:text-3xl font-bold mb-4 text-white tracking-tight">
                       ¿Por qué confiar en nosotros?
                     </h2>
-                    
+
                     <p className="text-white/90 text-sm leading-relaxed font-medium">
                       Sabemos que importar un coche no es una decisión pequeña, y por eso cuidamos cada detalle para que todo sea claro, legal y seguro desde el primer momento.
                     </p>

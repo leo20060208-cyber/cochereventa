@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, Car, Users, Settings, ShoppingCart, ExternalLink, type LucideIcon } from "lucide-react";
+import { Home, Car, Users, Settings, type LucideIcon } from "lucide-react";
 import { FloatingNav } from "@/components/ui/floating-navbar";
 
 function Header1() {
@@ -28,16 +28,6 @@ function Header1() {
             name: "Servicios",
             link: "#what-we-do",
             icon: Settings,
-        },
-        {
-            name: "Stock",
-            link: "#stock",
-            icon: ShoppingCart,
-        },
-        {
-            name: "Catálogo",
-            link: "/coches",
-            icon: ExternalLink,
         },
     ];
 

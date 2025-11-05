@@ -2,25 +2,15 @@
 
 import { motion } from "framer-motion";
 import { ChevronDown, ChevronUp, HelpCircle } from "lucide-react";
-import { useState, useEffect } from "react";
-import { getFAQs, type FAQ } from "@/lib/data";
+import { useState } from "react";
+import { type FAQ } from "@/lib/data";
 
-export function FAQSection() {
-  const [faqs, setFaqs] = useState<FAQ[]>([]);
+interface FAQSectionProps {
+  faqs: FAQ[]
+}
+
+export function FAQSection({ faqs }: FAQSectionProps) {
   const [openItems, setOpenItems] = useState<Set<number>>(new Set());
-
-  useEffect(() => {
-    const loadFAQs = () => {
-      setFaqs(getFAQs());
-    };
-    
-    loadFAQs();
-    
-    // Refresh every 2 seconds to catch updates from moderation
-    const interval = setInterval(loadFAQs, 2000);
-    
-    return () => clearInterval(interval);
-  }, []);
 
   const toggleItem = (id: number) => {
     const newOpenItems = new Set(openItems);
@@ -83,7 +73,7 @@ export function FAQSection() {
             viewport={{ once: true }}
             className="space-y-4"
           >
-            {faqs.map((faq, index) => (
+            {faqs.map((faq) => (
               <motion.div
                 key={faq.id}
                 variants={fadeUp}
@@ -146,7 +136,7 @@ export function FAQSection() {
               className="inline-flex items-center space-x-3"
             >
               <a
-                href="https://wa.me/34600000000"
+                href="https://wa.me/34640337898"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full text-sm md:text-base font-semibold transition-colors duration-200 flex items-center space-x-2"

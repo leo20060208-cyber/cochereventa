@@ -2,78 +2,49 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { 
-  Car, 
-  Users, 
-  Calendar, 
-  Settings, 
-  Plus, 
-  Edit, 
-  Trash2, 
-  Eye, 
+import {
+  Car,
+  Users,
+  Calendar,
+  Settings,
+  Plus,
+  Edit,
+  Trash2,
   Download,
-  Upload,
-  Save,
-  X,
-  Check,
-  AlertCircle,
-  MessageSquare,
-  Phone,
+  Quote,
   Mail,
-  MapPin,
-  Euro,
-  Gauge,
-  Fuel,
-  Calendar as CalendarIcon,
-  HelpCircle,
+  Phone,
+  MessageSquare,
   Star,
-  Quote
+  MapPin,
+  X,
+  Save,
+  HelpCircle,
+  LogOut
 } from "lucide-react";
 import Component from "@/components/ui/asd";
-import { 
-  getCars, 
-  getReservations, 
-  getVideos, 
-  getWhoWeAreData,
-  getFAQs,
-  getClients,
-  getSiteSettings,
-  updateSiteSettings,
-  addCar, 
-  updateCar, 
-  deleteCar,
-  addReservation,
-  updateReservation,
-  deleteReservation,
-  addVideo,
-  updateVideo,
-  deleteVideo,
-  updateWhoWeAreData,
-  addFAQ,
-  updateFAQ,
-  deleteFAQ,
-  addClient,
-  updateClient,
-  deleteClient,
-  type Car as CarData,
+import * as api from "@/lib/api";
+import {
+  type Car as CarType,
   type Reservation,
-  type Video as VideoData,
+  type Video,
   type WhoWeAreData,
   type FAQ,
   type Client,
   type SiteSettings
 } from "@/lib/data";
 import Link from "next/link";
+import { AdminLogin } from "@/components/admin-login";
 
 // Utility function to handle paste events
 const handlePasteImage = (e: React.ClipboardEvent, callback: (url: string) => void) => {
   e.preventDefault();
-  
+
   // Check if clipboard contains files
   const items = e.clipboardData.items;
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
-    
+
     // Handle image files
     if (item.type.indexOf('image') === 0) {
       const file = item.getAsFile();
@@ -82,7 +53,7 @@ const handlePasteImage = (e: React.ClipboardEvent, callback: (url: string) => vo
       }
     }
   }
-  
+
   // Check if clipboard contains text (URL)
   const text = e.clipboardData.getData('text');
   if (text && (text.startsWith('http://') || text.startsWith('https://'))) {
@@ -103,15 +74,17 @@ const convertFileToBase64 = (file: File, callback: (base64: string) => void) => 
 
 
 export default function AdminPanel() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("cars");
-  const [cars, setCars] = useState<CarData[]>([]);
+  const [cars, setCars] = useState<CarType[]>([]);
   const [reservations, setReservations] = useState<Reservation[]>([]);
-  const [videos, setVideos] = useState<VideoData[]>([]);
+  const [videos, setVideos] = useState<Video[]>([]);
   const [whoWeAreData, setWhoWeAreData] = useState<WhoWeAreData | null>(null);
   const [faqs, setFaqs] = useState<FAQ[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
-  const [editingCar, setEditingCar] = useState<CarData | null>(null);
-  const [editingVideo, setEditingVideo] = useState<VideoData | null>(null);
+  const [editingCar, setEditingCar] = useState<CarType | null>(null);
+  const [editingVideo, setEditingVideo] = useState<Video | null>(null);
   const [editingWhoWeAre, setEditingWhoWeAre] = useState(false);
   const [editingFAQ, setEditingFAQ] = useState<FAQ | null>(null);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
@@ -119,166 +92,270 @@ export default function AdminPanel() {
   const [showAddVideo, setShowAddVideo] = useState(false);
   const [showAddFAQ, setShowAddFAQ] = useState(false);
   const [showAddClient, setShowAddClient] = useState(false);
-  const [siteSettings, setSiteSettings] = useState<SiteSettings>(getSiteSettings());
+  const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null);
 
-  // Load data from data store
+  // Check authentication on mount
   useEffect(() => {
-    const loadData = () => {
-      setCars(getCars());
-      setReservations(getReservations());
-      setVideos(getVideos());
-      setWhoWeAreData(getWhoWeAreData());
-      setFaqs(getFAQs());
-      setClients(getClients());
-      setSiteSettings(getSiteSettings());
-    };
-    
-    loadData();
-    
-    // Refresh data every 2 seconds to get updates
-    const interval = setInterval(loadData, 2000);
-    
-    return () => clearInterval(interval);
+    const auth = sessionStorage.getItem("admin_authenticated");
+    setIsAuthenticated(auth === "true");
+    setIsLoading(false);
   }, []);
 
-  // Force reload data from localStorage
-  const forceReloadData = () => {
-    console.log('🔄 Force reloading all data from localStorage');
-    setCars(getCars());
-    setReservations(getReservations());
-    setVideos(getVideos());
-    setWhoWeAreData(getWhoWeAreData());
-    setFaqs(getFAQs());
-    setClients(getClients());
-    setSiteSettings(getSiteSettings());
-    console.log('✅ Data reload complete');
+  // Load data when authenticated or tab changes
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadData();
+    }
+  }, [isAuthenticated, activeTab]);
+
+  const loadData = async () => {
+    try {
+      await Promise.all([
+        loadCars(),
+        loadReservations(),
+        loadVideos(),
+        loadWhoWeAreData(),
+        loadFAQs(),
+        loadClients(),
+        loadSiteSettings()
+      ]);
+    } catch (error) {
+      console.error('Error loading data:', error);
+    }
+  };
+
+  const loadCars = async () => {
+    try {
+      const data = await api.getCars();
+      setCars(data);
+    } catch (error) {
+      console.error('Error loading cars:', error);
+    }
+  };
+
+  const loadReservations = async () => {
+    try {
+      const data = await api.getReservations();
+      setReservations(data);
+    } catch (error) {
+      console.error('Error loading reservations:', error);
+    }
+  };
+
+  const loadVideos = async () => {
+    try {
+      const data = await api.getVideos();
+      setVideos(data);
+    } catch (error) {
+      console.error('Error loading videos:', error);
+    }
+  };
+
+  const loadWhoWeAreData = async () => {
+    try {
+      const data = await api.getWhoWeAreData();
+      setWhoWeAreData(data);
+    } catch (error) {
+      console.error('Error loading who we are data:', error);
+    }
+  };
+
+  const loadFAQs = async () => {
+    try {
+      const data = await api.getAllFAQs();
+      setFaqs(data);
+    } catch (error) {
+      console.error('Error loading FAQs:', error);
+    }
+  };
+
+  const loadClients = async () => {
+    try {
+      const data = await api.getAllClients();
+      setClients(data);
+    } catch (error) {
+      console.error('Error loading clients:', error);
+    }
+  };
+
+  const loadSiteSettings = async () => {
+    try {
+      const data = await api.getSiteSettings();
+      setSiteSettings(data);
+    } catch (error) {
+      console.error('Error loading site settings:', error);
+    }
+  };
+
+  const handleLogout = () => {
+    sessionStorage.removeItem("admin_authenticated");
+    setIsAuthenticated(false);
   };
 
   // Get cars from catalog (same logic as /coches page)
-  const catalogCars = cars; // All cars 
-  
+  const catalogCars = cars; // All cars
+
   // Create car grid with empty slots up to 12 slots total
-  const createCarGrid = () => {
+  type CarSlot = { car: CarType; index: number; isEmpty: false } | { car: null; index: number; isEmpty: true };
+
+  const createCarGrid = (): CarSlot[] => {
     const maxSlots = 12;
-    const carSlots = [];
-    
+    const carSlots: CarSlot[] = [];
+
     // Add real cars first
     catalogCars.forEach((car, index) => {
       carSlots.push({ car, index, isEmpty: false });
     });
-    
+
     // Fill remaining slots with empty slots
     for (let i = catalogCars.length; i < maxSlots; i++) {
       carSlots.push({ car: null, index: i, isEmpty: true });
     }
-    
+
     return carSlots;
   };
 
   const carGridSlots = createCarGrid();
 
-  const handleSaveCar = (carData: CarData) => {
-    if (carData.id) {
-      const updatedCar = updateCar(carData.id, carData);
-      if (updatedCar) {
-        forceReloadData();
+  const handleSaveCar = async (carData: CarType) => {
+    try {
+      if (carData.id) {
+        // Update existing car
+        await api.updateCar(carData.id, carData);
+      } else {
+        // Add new car
+        const { id, ...carWithoutId } = carData;
+        await api.addCar(carWithoutId);
       }
-    } else {
-      const newCar = addCar(carData);
-      forceReloadData();
-    }
-    setEditingCar(null);
-    setShowAddCar(false);
-  };
-
-  const handleDeleteCar = (id: number) => {
-    if (deleteCar(id)) {
-      forceReloadData();
+      await loadCars();
+      setEditingCar(null);
+      setShowAddCar(false);
+    } catch (error) {
+      console.error('Error saving car:', error);
     }
   };
 
-  const handleSaveVideo = (videoData: VideoData) => {
-    if (videoData.id) {
-      const updatedVideo = updateVideo(videoData.id, videoData);
-      if (updatedVideo) {
-        forceReloadData();
+  const handleDeleteCar = async (id: number) => {
+    try {
+      await api.deleteCar(id);
+      await loadCars();
+    } catch (error) {
+      console.error('Error deleting car:', error);
+    }
+  };
+
+  const handleSaveVideo = async (videoData: Video) => {
+    try {
+      if (videoData.id) {
+        await api.updateVideo(videoData.id, videoData);
+      } else {
+        const { id, ...videoWithoutId } = videoData;
+        await api.addVideo(videoWithoutId);
       }
-    } else {
-      const newVideo = addVideo(videoData);
-      forceReloadData();
-    }
-    setEditingVideo(null);
-    setShowAddVideo(false);
-  };
-
-  const handleDeleteVideo = (id: number) => {
-    if (deleteVideo(id)) {
-      forceReloadData();
+      await loadVideos();
+      setEditingVideo(null);
+      setShowAddVideo(false);
+    } catch (error) {
+      console.error('Error saving video:', error);
     }
   };
 
-  const updateReservationStatus = (id: number, status: Reservation["status"]) => {
-    const updatedReservation = updateReservation(id, { status });
-    if (updatedReservation) {
-      setReservations(prevReservations => prevReservations.map(res => 
-        res.id === id ? updatedReservation : res
-      ));
+  const handleDeleteVideo = async (id: number) => {
+    try {
+      await api.deleteVideo(id);
+      await loadVideos();
+    } catch (error) {
+      console.error('Error deleting video:', error);
     }
   };
 
-  const handleSaveFAQ = (faqData: FAQ) => {
-    if (faqData.id) {
-      const updatedFAQ = updateFAQ(faqData.id, faqData);
-      if (updatedFAQ) {
-        forceReloadData();
+  const updateReservationStatus = async (id: number, status: Reservation["status"]) => {
+    try {
+      await api.updateReservation(id, { status });
+      await loadReservations();
+    } catch (error) {
+      console.error('Error updating reservation status:', error);
+    }
+  };
+
+  const handleSaveFAQ = async (faqData: FAQ) => {
+    try {
+      if (faqData.id) {
+        await api.updateFAQ(faqData.id, faqData);
+      } else {
+        const { id, ...faqWithoutId } = faqData;
+        await api.addFAQ(faqWithoutId);
       }
-    } else {
-      const newFAQ = addFAQ(faqData);
-      forceReloadData();
-    }
-    setEditingFAQ(null);
-    setShowAddFAQ(false);
-  };
-
-  const handleDeleteFAQ = (id: number) => {
-    if (deleteFAQ(id)) {
-      forceReloadData();
+      await loadFAQs();
+      setEditingFAQ(null);
+      setShowAddFAQ(false);
+    } catch (error) {
+      console.error('Error saving FAQ:', error);
     }
   };
 
-  const handleSaveClient = (clientData: Client) => {
-    if (clientData.id) {
-      const updatedClient = updateClient(clientData.id, clientData);
-      if (updatedClient) {
-        forceReloadData();
+  const handleDeleteFAQ = async (id: number) => {
+    try {
+      await api.deleteFAQ(id);
+      await loadFAQs();
+    } catch (error) {
+      console.error('Error deleting FAQ:', error);
+    }
+  };
+
+  const handleSaveClient = async (clientData: Client) => {
+    try {
+      if (clientData.id) {
+        await api.updateClient(clientData.id, clientData);
+      } else {
+        const { id, ...clientWithoutId } = clientData;
+        await api.addClient(clientWithoutId);
       }
-    } else {
-      const newClient = addClient(clientData);
-      forceReloadData();
-    }
-    setEditingClient(null);
-    setShowAddClient(false);
-  };
-
-  const handleDeleteClient = (id: number) => {
-    if (deleteClient(id)) {
-      forceReloadData();
+      await loadClients();
+      setEditingClient(null);
+      setShowAddClient(false);
+    } catch (error) {
+      console.error('Error saving client:', error);
     }
   };
 
-  const handleSaveSiteSettings = (settings: Partial<SiteSettings>) => {
-    const updatedSettings = updateSiteSettings(settings);
-    setSiteSettings(updatedSettings);
-    console.log('✅ Site settings updated:', updatedSettings);
+  const handleDeleteClient = async (id: number) => {
+    try {
+      await api.deleteClient(id);
+      await loadClients();
+    } catch (error) {
+      console.error('Error deleting client:', error);
+    }
+  };
+
+  const handleSaveSiteSettings = async (settings: Partial<SiteSettings>) => {
+    try {
+      const updatedSettings = await api.updateSiteSettings(settings);
+      if (updatedSettings) {
+        setSiteSettings(updatedSettings);
+      }
+    } catch (error) {
+      console.error('Error updating site settings:', error);
+    }
+  };
+
+  const handleSaveWhoWeAre = async (data: WhoWeAreData) => {
+    try {
+      await api.updateWhoWeAreData(data);
+      await loadWhoWeAreData();
+      setEditingWhoWeAre(false);
+    } catch (error) {
+      console.error('Error updating who we are data:', error);
+    }
   };
 
   const exportReservations = () => {
-    const csvContent = "data:text/csv;charset=utf-8," + 
+    const csvContent = "data:text/csv;charset=utf-8," +
       "ID,Coche,Cliente,Email,Teléfono,Método,Fecha,Hora,Estado,Mensaje,Fecha Creación\n" +
-      reservations.map(res => 
+      reservations.map(res =>
         `${res.id},"${res.carName}","${res.customerName}","${res.email}","${res.phone}","${res.method}","${res.date || ''}","${res.time || ''}","${res.status}","${res.message}","${new Date(res.createdAt).toLocaleString()}"`
       ).join("\n");
-    
+
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
@@ -298,11 +375,25 @@ export default function AdminPanel() {
     { id: "settings", label: "Configuración", icon: Settings },
   ];
 
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900">
+        <div className="text-white text-xl">Cargando...</div>
+      </div>
+    );
+  }
+
+  // Show login if not authenticated
+  if (!isAuthenticated) {
+    return <AdminLogin onLogin={() => setIsAuthenticated(true)} />;
+  }
+
   return (
     <div className="min-h-screen w-full relative">
       {/* Grid Shader Background */}
       <Component />
-      
+
       <div className="relative z-10 min-h-screen">
         {/* Header */}
         <div className="bg-black/20 backdrop-blur-sm border-b border-white/20 sticky top-0 z-20">
@@ -319,6 +410,13 @@ export default function AdminPanel() {
                 >
                   <Download className="h-4 w-4 mr-2" />
                   Exportar CSV
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Cerrar Sesión
                 </button>
               </div>
             </div>
@@ -392,17 +490,38 @@ export default function AdminPanel() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: slot.index * 0.1 }}
-                        className="bg-white/5 border border-white/20 rounded-xl p-4 h-48 flex flex-col hover:bg-black/40 hover:border-white/30 transition-all duration-300 group"
+                        className="bg-white/5 border border-white/20 rounded-xl overflow-hidden group relative"
                       >
-                        {/* Car Image */}
-                        <div className="relative mb-3 flex-1">
+                        {/* Car Image with overlay buttons */}
+                        <div className="relative h-40">
                           <img
                             src={slot.car!.images?.[0] || slot.car!.image}
                             alt={`${slot.car!.brand} ${slot.car!.model}`}
-                            className="w-full h-24 object-cover rounded-lg"
+                            className="w-full h-full object-cover"
                           />
+                          {/* Dark overlay on hover */}
+                          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3 p-4">
+                            <button
+                              onClick={() => setEditingCar(slot.car!)}
+                              className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium flex items-center justify-center gap-2"
+                            >
+                              <Edit className="h-5 w-5" />
+                              Editar
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (confirm(`¿Eliminar ${slot.car!.brand} ${slot.car!.model}?`)) {
+                                  handleDeleteCar(slot.car!.id);
+                                }
+                              }}
+                              className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-sm font-medium flex items-center justify-center gap-2"
+                            >
+                              <Trash2 className="h-5 w-5" />
+                              Eliminar
+                            </button>
+                          </div>
                           {/* Status Badge */}
-                          <div className="absolute top-2 right-2">
+                          <div className="absolute top-2 right-2 z-10">
                             <span className={`px-2 py-1 text-xs rounded-full font-medium ${
                               slot.car!.status === "available" ? "bg-green-500/90 text-white" :
                               slot.car!.status === "reserved" ? "bg-yellow-500/90 text-white" :
@@ -413,45 +532,16 @@ export default function AdminPanel() {
                             </span>
                           </div>
                         </div>
-                        
+
                         {/* Car Info */}
-                        <div className="flex-1 flex flex-col justify-between">
-                          <div>
-                            <h3 className="text-white font-semibold text-sm mb-1 group-hover:text-blue-400 transition-colors">
-                              {slot.car!.brand} {slot.car!.model}
-                            </h3>
-                            <p className="text-white/60 text-xs mb-2">
-                              {slot.car!.price.toLocaleString()}€ • {slot.car!.mileage.toLocaleString()}km
-                            </p>
-                            <p className="text-white/50 text-xs">{slot.car!.year} • {slot.car!.location}</p>
-                          </div>
-                          
-                          {/* Actions */}
-                          <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/10">
-                            <Link 
-                              href="/coches"
-                              className="text-blue-400 hover:text-blue-300 text-xs font-medium flex items-center group"
-                            >
-                              <Eye className="h-3 w-3 mr-1 group-hover:scale-110 transition-transform" />
-                              Ver en Catálogo
-                            </Link>
-                            <div className="flex items-center space-x-1">
-                              <button
-                                onClick={() => setEditingCar(slot.car!)}
-                                className="p-1.5 text-blue-400 hover:bg-blue-400/20 rounded transition-colors group"
-                                title="Editar coche"
-                              >
-                                <Edit className="h-3 w-3 group-hover:scale-110 transition-transform" />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteCar(slot.car!.id)}
-                                className="p-1.5 text-red-400 hover:bg-red-400/20 rounded transition-colors group"
-                                title="Eliminar coche"
-                              >
-                                <Trash2 className="h-3 w-3 group-hover:scale-110 transition-transform" />
-                              </button>
-                            </div>
-                          </div>
+                        <div className="p-4">
+                          <h3 className="text-white font-semibold text-sm mb-1">
+                            {slot.car!.brand} {slot.car!.model}
+                          </h3>
+                          <p className="text-white/60 text-xs mb-1">
+                            {slot.car!.price.toLocaleString()}€ • {slot.car!.mileage.toLocaleString()}km
+                          </p>
+                          <p className="text-white/50 text-xs">{slot.car!.year} • {slot.car!.location}</p>
                         </div>
                       </motion.div>
                     )
@@ -463,7 +553,7 @@ export default function AdminPanel() {
             {activeTab === "reservations" && (
               <div>
                 <h2 className="text-xl font-bold text-white mb-6">Reservas y Contactos</h2>
-                
+
                 <div className="grid gap-4">
                   {reservations.map((reservation) => (
                     <motion.div
@@ -497,7 +587,7 @@ export default function AdminPanel() {
                           </div>
                           {reservation.date && (
                             <div className="flex items-center mt-2 text-sm text-white/80">
-                              <CalendarIcon className="h-4 w-4 mr-2 text-blue-400" />
+                              <Calendar className="h-4 w-4 mr-2 text-blue-400" />
                               {reservation.date} a las {reservation.time}
                             </div>
                           )}
@@ -513,13 +603,13 @@ export default function AdminPanel() {
                            reservation.status === "completed" ? "Completada" : "Cancelada"}
                         </span>
                       </div>
-                      
+
                       <div className="mb-4">
                         <p className="text-white/90 text-sm leading-relaxed">
                           {reservation.message}
                         </p>
                       </div>
-                      
+
                       <div className="flex items-center justify-between">
                         <span className="text-white/60 text-xs">
                           {new Date(reservation.createdAt).toLocaleString()}
@@ -752,11 +842,11 @@ export default function AdminPanel() {
                           </button>
                         </div>
                       </div>
-                      
+
                       <div className="mb-4">
                         <Quote className="h-4 w-4 text-blue-400 mb-2 opacity-50" />
                         <p className="text-white/80 text-sm leading-relaxed">
-                          "{client.testimonial}"
+                          &quot;{client.testimonial}&quot;
                         </p>
                       </div>
 
@@ -782,7 +872,7 @@ export default function AdminPanel() {
               </div>
             )}
 
-            {activeTab === "who-we-are" && (
+            {activeTab === "team" && (
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xl font-bold text-white">Gestión de Quiénes Somos</h2>
@@ -821,11 +911,8 @@ export default function AdminPanel() {
                 )}
               </div>
             )}
-          </div>
-        </div>
-      </div>
 
-            {activeTab === "settings" && (
+            {activeTab === "settings" && siteSettings && (
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xl font-bold text-white">Configuración del Sitio</h2>
@@ -979,6 +1066,9 @@ export default function AdminPanel() {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      </div>
 
       {/* Modals */}
       {showAddCar && (
@@ -1016,11 +1106,7 @@ export default function AdminPanel() {
       {editingWhoWeAre && whoWeAreData && (
         <WhoWeAreEditModal
           data={whoWeAreData}
-          onSave={(data) => {
-            updateWhoWeAreData(data);
-            setWhoWeAreData(getWhoWeAreData());
-            setEditingWhoWeAre(false);
-          }}
+          onSave={handleSaveWhoWeAre}
           onClose={() => setEditingWhoWeAre(false)}
         />
       )}
@@ -1062,8 +1148,8 @@ export default function AdminPanel() {
 
 // Car Edit Modal Component
 function CarEditModal({ car, onSave, onClose }: {
-  car: CarData | null;
-  onSave: (car: CarData) => void;
+  car: CarType | null;
+  onSave: (car: CarType) => void;
   onClose: () => void;
 }) {
   const [formData, setFormData] = useState({
@@ -1083,8 +1169,28 @@ function CarEditModal({ car, onSave, onClose }: {
   });
 
   const [newFeature, setNewFeature] = useState("");
-  const [newImage, setNewImage] = useState("");
   const [newImageUrl, setNewImageUrl] = useState("");
+
+  // Actualizar formData cuando cambia el coche a editar
+  useEffect(() => {
+    if (car) {
+      setFormData({
+        brand: car.brand,
+        model: car.model,
+        year: car.year,
+        price: car.price,
+        mileage: car.mileage,
+        fuel: car.fuel,
+        transmission: car.transmission,
+        location: car.location,
+        image: car.image,
+        images: car.images,
+        features: car.features,
+        description: car.description,
+        status: car.status
+      });
+    }
+  }, [car]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1302,7 +1408,7 @@ function CarEditModal({ car, onSave, onClose }: {
                   )}
                 </div>
               ))}
-              
+
               <div className="flex items-center space-x-3">
                 <input
                   type="url"
@@ -1378,7 +1484,7 @@ function CarEditModal({ car, onSave, onClose }: {
             <label className="block text-white/90 text-sm font-medium mb-2">Estado</label>
             <select
               value={formData.status}
-              onChange={(e) => setFormData({ ...formData, status: e.target.value as CarData["status"] })}
+              onChange={(e) => setFormData({ ...formData, status: e.target.value as CarType["status"] })}
               className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:border-blue-400 transition-colors"
             >
               <option value="available">Disponible</option>
@@ -1411,16 +1517,16 @@ function CarEditModal({ car, onSave, onClose }: {
 
 // Video Edit Modal Component
 function VideoEditModal({ video, onSave, onClose }: {
-  video: VideoData | null;
-  onSave: (video: VideoData) => void;
+  video: Video | null;
+  onSave: (video: Video) => void;
   onClose: () => void;
 }) {
   const [formData, setFormData] = useState({
     title: video?.title || "",
     url: video?.url || "",
     description: video?.description || "",
-    type: video?.type || "hero",
-    active: video?.active || true
+    type: video?.type || "hero" as "hero" | "what-we-do",
+    active: video?.active ?? true
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -1536,9 +1642,17 @@ function WhoWeAreEditModal({ data, onSave, onClose }: {
   onClose: () => void;
 }) {
   const [formData, setFormData] = useState({
-    image: data.image,
     description: data.description
   });
+
+  // Actualizar formData cuando cambian los datos
+  useEffect(() => {
+    if (data) {
+      setFormData({
+        description: data.description
+      });
+    }
+  }, [data]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1564,33 +1678,13 @@ function WhoWeAreEditModal({ data, onSave, onClose }: {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-white/90 text-sm font-medium mb-2">URL de la Imagen</label>
-            <input
-              type="url"
-              value={formData.image}
-              onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:border-blue-400 transition-colors"
-              placeholder="https://images.unsplash.com/..."
-              required
-            />
-            {formData.image && (
-              <div className="mt-4">
-                <img
-                  src={formData.image}
-                  alt="Vista previa"
-                  className="w-full h-48 object-cover rounded-xl"
-                />
-              </div>
-            )}
-          </div>
-
-          <div>
             <label className="block text-white/90 text-sm font-medium mb-2">Descripción</label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              rows={4}
+              rows={6}
               className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:border-blue-400 transition-colors resize-none"
+              placeholder="Somos tres chicos jóvenes de Barcelona..."
               required
             />
           </div>
@@ -1626,7 +1720,7 @@ function FAQEditModal({ faq, onSave, onClose }: {
   const [formData, setFormData] = useState({
     question: faq?.question || "",
     answer: faq?.answer || "",
-    active: faq?.active || true,
+    active: faq?.active ?? true,
     order: faq?.order || 1
   });
 
@@ -1719,7 +1813,7 @@ function FAQEditModal({ faq, onSave, onClose }: {
               Guardar
             </button>
           </div>
-        </form>  
+        </form>
       </motion.div>
     </div>
   );
@@ -1739,7 +1833,7 @@ function ClientEditModal({ client, onSave, onClose }: {
     location: client?.location || "",
     carBought: client?.carBought || "",
     completedAt: client?.completedAt || "",
-    active: client?.active || true,
+    active: client?.active ?? true,
     order: client?.order || 1
   });
 
