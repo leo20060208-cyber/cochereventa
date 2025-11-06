@@ -56,7 +56,7 @@ export function HeroSection({ videos }: HeroSectionProps) {
                   className="mt-4 text-center"
                 >
                   <p className="text-xs sm:text-sm md:text-base text-white/80 italic max-w-xl mx-auto px-4 leading-relaxed">
-                    <span className="text-white/60">(</span>La conversa que tiene todo el mundo, y la pregunta del millón: ¿por qué no lo hace todo el mundo si es más rentable? 
+                    <span className="text-white/60">(</span>La conversación que tiene todo el mundo, y la pregunta del millón: ¿por qué no lo hace todo el mundo si es más rentable? 
                     Nosotros siempre decimos lo mismo: <span className="text-blue-400">&quot;Mira, no lo sé, pero mejor menos competencia, más barato&quot;</span><span className="text-white/60">)</span>
                   </p>
                 </motion.div>
