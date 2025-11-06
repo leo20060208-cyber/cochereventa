@@ -15,8 +15,16 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Carritos - Importación de Coches desde Europa",
-  description: "Importamos tu coche de Alemania, Francia o Italia, lo revisamos, gestionamos los papeles, pasamos la ITV y te lo entregamos listo para conducir.",
+  title: "rkmgroup",
+  description:
+    "Importamos tu coche de Alemania, Francia o Italia, lo revisamos, gestionamos los papeles, pasamos la ITV y te lo entregamos listo para conducir.",
+  icons: {
+    icon: [
+      { url: "/logo.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/logo.svg",
+    apple: "/logo.svg",
+  },
 };
 
 export default function RootLayout({

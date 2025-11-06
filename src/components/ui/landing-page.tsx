@@ -436,9 +436,9 @@ export function CarImportSections() {
               className="flex items-center justify-center"
             >
               <div className="relative h-[350px] w-full md:h-[450px] lg:h-[500px] overflow-hidden rounded-3xl">
-                <Image
+              <Image
                   src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1920&h=1080&fit=crop&crop=center"
-                  alt="Equipo Carritos"
+                  alt="Equipo"
                   fill
                   className="object-cover"
                 />
@@ -537,8 +537,8 @@ export function CarImportSections() {
           >
             {[
               {
-                quote:
-                  "El proceso fue increíblemente fácil. En 3 semanas tenía mi BMW en casa, completamente legalizado. El equipo de Carritos se encargó de todo.",
+              quote:
+                  "El proceso fue increíblemente fácil. En 3 semanas tenía mi BMW en casa, completamente legalizado. Nuestro equipo se encargó de todo.",
                 author: "Sara Jiménez",
                 company: "Madrid",
               },
@@ -555,8 +555,8 @@ export function CarImportSections() {
                 company: "Valencia",
               },
               {
-                quote:
-                  "Recomiendo Carritos a todo el mundo. Profesionales, rápidos y con un servicio post-venta excepcional.",
+              quote:
+                  "Los recomiendo a todo el mundo. Profesionales, rápidos y con un servicio post-venta excepcional.",
                 author: "Roberto Silva",
                 company: "Sevilla",
               },
@@ -630,7 +630,7 @@ export function CarImportSections() {
                 </div>
                 <div>
                   <h3 className="font-medium text-black">Email</h3>
-                  <p className="text-sm text-slate-600">hola@carritos.es</p>
+                  <p className="text-sm text-slate-600">hola@rkmgroup.es</p>
                 </div>
               </motion.div>
               <motion.div whileHover={{ x: 5 }} className="flex items-start gap-3">
