@@ -54,7 +54,7 @@ export function WhoWeAre({ data }: WhoWeAreProps) {
 
                     <p className="text-white/90 text-sm leading-relaxed font-medium">
                       Es verdad que en algunos vídeos salimos con máscara, y entendemos que eso puede generar ciertas dudas.
-                      Pero tranquilos: cuando hablemos por WhatsApp o nos veamos en persona (ya sea en un meet o reunión),
+                      Pero tranquilos: cuando hablemos por WhatsApp o nos veamos en persona,
                       nos conoceréis tal como somos. Creemos en el trato cercano, honesto y directo.
                     </p>
                   </div>

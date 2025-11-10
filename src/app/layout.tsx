@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { PopupInicio } from "@/components/PopupInicio";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -57,6 +58,7 @@ export default function RootLayout({
         className={`${inter.variable} ${jetbrainsMono.variable} antialiased font-sans`}
       >
         {children}
+        <PopupInicio />
       </body>
     </html>
   );

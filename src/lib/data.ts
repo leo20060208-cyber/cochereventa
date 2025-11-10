@@ -25,7 +25,7 @@ export interface Reservation {
   customerName: string;
   email: string;
   phone: string;
-  method: "whatsapp" | "meet";
+  method: "whatsapp";
   date?: string;
   time?: string;
   message: string;
