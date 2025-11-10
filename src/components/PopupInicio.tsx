@@ -43,6 +43,14 @@ export function PopupInicio() {
     email: "",
   });
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [isInstagram, setIsInstagram] = useState(false);
+
+  // Detectar si están en Instagram
+  useEffect(() => {
+    const ua = navigator.userAgent || navigator.vendor;
+    const isInstaWebView = ua.includes('Instagram');
+    setIsInstagram(isInstaWebView);
+  }, []);
 
   useEffect(() => {
     // Limpiar localStorage para que siempre aparezca
@@ -151,13 +159,26 @@ Correo: ${formData.email}`;
     setTimeout(() => {
       const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
       
-      // Intentar múltiples métodos para compatibilidad con Instagram
-      // Método 1: Intentar window.open
-      const newWindow = window.open(whatsappUrl, "_blank");
-      
-      // Método 2: Si falla (bloqueado por Instagram), usar location.href
-      if (!newWindow || newWindow.closed || typeof newWindow.closed === "undefined") {
-        window.location.href = whatsappUrl;
+      // Si están en Instagram, crear un enlace intent para abrir en navegador externo
+      if (isInstagram) {
+        // Para Android: usar intent
+        const intentUrl = `intent://${whatsappUrl.replace('https://', '')}#Intent;scheme=https;package=com.android.chrome;end`;
+        
+        // Intentar abrir con intent (Android)
+        window.location.href = intentUrl;
+        
+        // Fallback para iOS: usar el URL directo
+        setTimeout(() => {
+          window.location.href = whatsappUrl;
+        }, 500);
+      } else {
+        // Navegador normal: intentar window.open primero
+        const newWindow = window.open(whatsappUrl, "_blank");
+        
+        // Si falla, usar location.href
+        if (!newWindow || newWindow.closed || typeof newWindow.closed === "undefined") {
+          window.location.href = whatsappUrl;
+        }
       }
       
       // Close popup and mark as seen (con delay para dar tiempo a la redirección)
