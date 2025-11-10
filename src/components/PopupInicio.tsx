@@ -150,11 +150,21 @@ Correo: ${formData.email}`;
     // Redirect to WhatsApp after a short delay
     setTimeout(() => {
       const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
-      window.open(whatsappUrl, "_blank");
       
-      // Close popup and mark as seen
-      setIsOpen(false);
-      localStorage.setItem("hasSeenPopup", "true");
+      // Intentar múltiples métodos para compatibilidad con Instagram
+      // Método 1: Intentar window.open
+      const newWindow = window.open(whatsappUrl, "_blank");
+      
+      // Método 2: Si falla (bloqueado por Instagram), usar location.href
+      if (!newWindow || newWindow.closed || typeof newWindow.closed === "undefined") {
+        window.location.href = whatsappUrl;
+      }
+      
+      // Close popup and mark as seen (con delay para dar tiempo a la redirección)
+      setTimeout(() => {
+        setIsOpen(false);
+        localStorage.setItem("hasSeenPopup", "true");
+      }, 500);
     }, 1000);
   };
 
